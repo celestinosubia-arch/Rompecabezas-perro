@@ -12,86 +12,100 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      background: #111;
+      background: radial-gradient(circle at center, #222 0%, #000 100%);
       color: white;
       text-align: center;
       margin: 0;
     }
 
     h1 {
-      font-size: 1.5rem;
-      margin-bottom: 20px;
+      font-size: 1.6rem;
+      margin-bottom: 25px;
       color: #ff4444;
-      text-shadow: 0 0 8px #ff0000;
+      text-shadow: 0 0 10px #ff0000;
     }
 
     .puzzle {
       display: grid;
       grid-template-columns: repeat(2, 150px);
       grid-template-rows: repeat(3, 150px);
-      gap: 5px;
-      border: 5px solid #ff4444;
+      gap: 8px;
+      border: 4px solid #ff4444;
       border-radius: 15px;
       padding: 10px;
-      box-shadow: 0 0 15px #ff0000;
-      background: #222;
+      box-shadow: 0 0 25px #ff0000;
+      background: #111;
     }
 
     .piece {
       width: 150px;
       height: 150px;
-      background-color: #444;
       border-radius: 10px;
       cursor: pointer;
-      overflow: hidden;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      background-image: url('perro.jpg');
-      background-size: 300px 450px; /* total del puzzle (2 columnas x 3 filas) */
+      background-color: #333;
+      background-image: none;
+      background-size: cover;
       background-repeat: no-repeat;
-      background-position: center;
+      transition: transform 0.3s ease;
     }
 
-    .piece.revealed {
-      transform: scale(1.05);
-      opacity: 1;
-    }
-
-    .piece::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 100%;
-      background: #444;
-      position: absolute;
-      top: 0;
-      left: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .piece.revealed::after {
-      opacity: 0;
+    .piece:hover {
+      transform: scale(1.02);
     }
   </style>
 </head>
 <body>
   <h1>Solo tienes una oportunidad</h1>
 
-  <div class="puzzle" id="puzzle">
-    <!-- las piezas están entreveradas -->
-    <div class="piece" style="background-position: -150px -150px;" onclick="reveal(this)"></div>
-    <div class="piece" style="background-position: 0px -300px;" onclick="reveal(this)"></div>
-    <div class="piece" style="background-position: -150px 0px;" onclick="reveal(this)"></div>
-    <div class="piece" style="background-position: 0px -150px;" onclick="reveal(this)"></div>
-    <div class="piece" style="background-position: -150px -300px;" onclick="reveal(this)"></div>
-    <div class="piece" style="background-position: 0px 0px;" onclick="reveal(this)"></div>
-  </div>
+  <div class="puzzle" id="puzzle"></div>
 
   <script>
-    let revealed = false;
-    function reveal(piece) {
-      if (revealed) return;
-      piece.classList.add("revealed");
-      revealed = true;
+    const puzzle = document.getElementById("puzzle");
+    const filas = 3;
+    const columnas = 2;
+    const piezas = [];
+
+    // Crear las 6 piezas
+    for (let i = 0; i < filas * columnas; i++) {
+      const div = document.createElement("div");
+      div.classList.add("piece");
+      div.onclick = () => revelar(div);
+      piezas.push(div);
+    }
+
+    // Mezclar posiciones
+    piezas.sort(() => Math.random() - 0.5);
+    piezas.forEach(p => puzzle.appendChild(p));
+
+    // Cuando la imagen carga, calcula proporciones
+    const img = new Image();
+    img.src = "perro.jpg";
+    img.onload = () => {
+      const ancho = img.width;
+      const alto = img.height;
+
+      const anchoParte = ancho / columnas;
+      const altoParte = alto / filas;
+
+      let index = 0;
+      for (let y = 0; y < filas; y++) {
+        for (let x = 0; x < columnas; x++) {
+          const pieza = piezas[index];
+          pieza.dataset.pos = `${-x * 100 / (columnas - 1)}% ${-y * 100 / (filas - 1)}%`;
+          index++;
+        }
+      }
+    };
+
+    let revelado = false;
+
+    function revelar(pieza) {
+      if (revelado) return;
+      revelado = true;
+
+      pieza.style.backgroundImage = "url('perro.jpg')";
+      pieza.style.backgroundSize = "200% 300%";
+      pieza.style.backgroundPosition = pieza.dataset.pos;
     }
   </script>
 </body>
