@@ -45,6 +45,10 @@
       cursor: pointer;
       overflow: hidden;
       transition: transform 0.3s ease, opacity 0.3s ease;
+      background-image: url('perro.jpg');
+      background-size: 300px 450px; /* total del puzzle (2 columnas x 3 filas) */
+      background-repeat: no-repeat;
+      background-position: center;
     }
 
     .piece.revealed {
@@ -52,15 +56,20 @@
       opacity: 1;
     }
 
-    .piece img {
+    .piece::after {
+      content: "";
+      display: block;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      display: none;
+      background: #444;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: opacity 0.3s ease;
     }
 
-    .piece.revealed img {
-      display: block;
+    .piece.revealed::after {
+      opacity: 0;
     }
   </style>
 </head>
@@ -68,18 +77,17 @@
   <h1>Solo tienes una oportunidad</h1>
 
   <div class="puzzle" id="puzzle">
-    <!-- piezas desordenadas -->
-    <div class="piece" onclick="reveal(this)"><img src="perro.jpg" alt="Parte 4"></div>
-    <div class="piece" onclick="reveal(this)"><img src="perro.jpg" alt="Parte 1"></div>
-    <div class="piece" onclick="reveal(this)"><img src="perro.jpg" alt="Parte 6"></div>
-    <div class="piece" onclick="reveal(this)"><img src="perro.jpg" alt="Parte 3"></div>
-    <div class="piece" onclick="reveal(this)"><img src="perro.jpg" alt="Parte 2"></div>
-    <div class="piece" onclick="reveal(this)"><img src="perro.jpg" alt="Parte 5"></div>
+    <!-- las piezas están entreveradas -->
+    <div class="piece" style="background-position: -150px -150px;" onclick="reveal(this)"></div>
+    <div class="piece" style="background-position: 0px -300px;" onclick="reveal(this)"></div>
+    <div class="piece" style="background-position: -150px 0px;" onclick="reveal(this)"></div>
+    <div class="piece" style="background-position: 0px -150px;" onclick="reveal(this)"></div>
+    <div class="piece" style="background-position: -150px -300px;" onclick="reveal(this)"></div>
+    <div class="piece" style="background-position: 0px 0px;" onclick="reveal(this)"></div>
   </div>
 
   <script>
     let revealed = false;
-
     function reveal(piece) {
       if (revealed) return;
       piece.classList.add("revealed");
