@@ -1,112 +1,183 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Solo tienes una oportunidad</title>
   <style>
+    :root {
+      --w: 150px;
+      --h: 150px;
+      --cols: 2;
+      --rows: 3;
+    }
+
+    * { box-sizing: border-box; }
     body {
-      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       background: radial-gradient(circle at center, #222 0%, #000 100%);
-      color: white;
-      text-align: center;
-      margin: 0;
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 25px;
+      margin: 0 0 18px 0;
       color: #ff4444;
       text-shadow: 0 0 10px #ff0000;
+      font-size: 1.4rem;
     }
 
     .puzzle {
       display: grid;
-      grid-template-columns: repeat(2, 150px);
-      grid-template-rows: repeat(3, 150px);
+      grid-template-columns: repeat(var(--cols), var(--w));
+      grid-template-rows: repeat(var(--rows), var(--h));
       gap: 8px;
-      border: 4px solid #ff4444;
-      border-radius: 15px;
       padding: 10px;
-      box-shadow: 0 0 25px #ff0000;
       background: #111;
+      border: 4px solid #ff4444;
+      border-radius: 14px;
+      box-shadow: 0 0 25px #ff0000;
     }
 
     .piece {
-      width: 150px;
-      height: 150px;
+      width: var(--w);
+      height: var(--h);
       border-radius: 10px;
+      background: #333;
       cursor: pointer;
-      background-color: #333;
-      background-image: none;
-      background-size: cover;
-      background-repeat: no-repeat;
-      transition: transform 0.3s ease;
+      overflow: hidden;
+      position: relative;
+      transition: transform .25s ease;
+      display: inline-block;
+      will-change: transform, opacity, background-position;
     }
 
-    .piece:hover {
-      transform: scale(1.02);
+    .piece:hover { transform: scale(1.02); }
+
+    /* Reveal animation */
+    .revealed {
+      animation: revealAnim .45s cubic-bezier(.2,.9,.2,1) forwards;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    @keyframes revealAnim {
+      0% { transform: scale(.85); opacity: .0; }
+      60% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1.02); opacity: 1; }
+    }
+
+    .message {
+      margin-top: 14px;
+      font-size: 0.95rem;
+      color: #ddd;
+      opacity: .9;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #ff9999;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
   <h1>Solo tienes una oportunidad</h1>
 
-  <div class="puzzle" id="puzzle"></div>
+  <div class="puzzle" id="puzzle" aria-label="Rompecabezas"></div>
+
+  <div class="message">Toca una pieza — sólo tienes una oportunidad.</div>
+  <div id="err" class="error" style="display:none"></div>
 
   <script>
-    const puzzle = document.getElementById("puzzle");
+    // Config
     const filas = 3;
     const columnas = 2;
-    const piezas = [];
+    const puzzle = document.getElementById('puzzle');
+    const imgSrc = 'perro.jpg'; // nombre de tu imagen (asegurate que exista)
 
-    // Crear las 6 piezas
-    for (let i = 0; i < filas * columnas; i++) {
-      const div = document.createElement("div");
-      div.classList.add("piece");
-      div.onclick = () => revelar(div);
-      piezas.push(div);
-    }
-
-    // Mezclar posiciones
-    piezas.sort(() => Math.random() - 0.5);
-    piezas.forEach(p => puzzle.appendChild(p));
-
-    // Cuando la imagen carga, calcula proporciones
-    const img = new Image();
-    img.src = "perro.jpg";
-    img.onload = () => {
-      const ancho = img.width;
-      const alto = img.height;
-
-      const anchoParte = ancho / columnas;
-      const altoParte = alto / filas;
-
-      let index = 0;
-      for (let y = 0; y < filas; y++) {
-        for (let x = 0; x < columnas; x++) {
-          const pieza = piezas[index];
-          pieza.dataset.pos = `${-x * 100 / (columnas - 1)}% ${-y * 100 / (filas - 1)}%`;
-          index++;
-        }
+    // Crear lista de piezas (objetos con coordenadas lógicas)
+    const coords = [];
+    for (let r = 0; r < filas; r++) {
+      for (let c = 0; c < columnas; c++) {
+        coords.push({ r, c });
       }
-    };
-
-    let revelado = false;
-
-    function revelar(pieza) {
-      if (revelado) return;
-      revelado = true;
-
-      pieza.style.backgroundImage = "url('perro.jpg')";
-      pieza.style.backgroundSize = "200% 300%";
-      pieza.style.backgroundPosition = pieza.dataset.pos;
     }
+
+    // Mezclar (Fisher-Yates)
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    const shuffledCoords = shuffle(coords.slice());
+
+    // Crear elementos visuales (mezclados)
+    const pieces = shuffledCoords.map((coord, index) => {
+      const d = document.createElement('div');
+      d.className = 'piece';
+      // Guarda la coordenada ORIGINAL que esta pieza representa
+      // (es decir la porción correcta de la imagen)
+      d.dataset.r = coord.r;
+      d.dataset.c = coord.c;
+      // dataset pos se calcula en % para usar con background-position
+      // background-position en %: x% y% indicando la posición de la imagen
+      // para que cada celda muestre la porción correcta usaremos:
+      // x% = (c / (columnas-1)) * 100  (y análogo para filas)
+      // negarlo para desplazar la imagen (ej: -0% -50% etc)
+      const xPercent = (columnas === 1) ? 0 : (coord.c * 100 / (columnas - 1));
+      const yPercent = (filas === 1) ? 0 : (coord.r * 100 / (filas - 1));
+      d.dataset.bgpos = `${-xPercent}% ${-yPercent}%`;
+      // agrega listener
+      d.addEventListener('click', () => revealPiece(d));
+      puzzle.appendChild(d);
+      return d;
+    });
+
+    // Ajustar tamaño del grid CSS variables (opcional: puede ajustarse)
+    // Si querés piezas más grandes, cambia --w y --h en :root css.
+
+    // Preparar valores de background-size (porcentajes)
+    const bgSize = `${columnas * 100}% ${filas * 100}%`;
+
+    let revealed = false;
+
+    function revealPiece(el) {
+      if (revealed) return;
+      revealed = true;
+
+      // Aplicar imagen recortada a la pieza seleccionada
+      el.style.backgroundImage = `url("${imgSrc}")`;
+      el.style.backgroundSize = bgSize;
+      el.style.backgroundPosition = el.dataset.bgpos;
+      el.classList.add('revealed');
+
+      // Bloquear interacciones restantes (opcional: visualmente se quedan igual)
+      pieces.forEach(p => { p.style.pointerEvents = 'none'; });
+    }
+
+    // Comprobación sencilla de existencia de la imagen para mostrar error si no existe
+    (function checkImage() {
+      const tester = new Image();
+      tester.onload = () => {
+        // imagen OK, no hacemos nada
+      };
+      tester.onerror = () => {
+        const errEl = document.getElementById('err');
+        errEl.style.display = 'block';
+        errEl.textContent = 'Error: no se pudo cargar "perro.jpg". Asegurate de que el archivo exista y esté en la misma carpeta.';
+        console.error('No se pudo cargar perro.jpg — revisá nombre y ubicación.');
+      };
+      tester.src = imgSrc;
+    })();
   </script>
 </body>
 </html>
