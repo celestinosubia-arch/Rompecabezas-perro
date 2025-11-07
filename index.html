@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rompecabezas del Perrito</title>
+<style>
+  body {
+    background: #fafafa;
+    font-family: sans-serif;
+    text-align: center;
+    padding-top: 30px;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .puzzle {
+    display: grid;
+    grid-template-columns: repeat(2, 150px); /* 2 columnas */
+    grid-template-rows: repeat(3, 150px);   /* 3 filas */
+    gap: 5px;
+    margin: 0 auto;
+    width: max-content;
+  }
+
+  .piece {
+    width: 150px;
+    height: 150px;
+    background-image: url("perro.jpg");
+    background-size: 300px 450px; /* 2x3 partes */
+    filter: brightness(0.1);
+    cursor: pointer;
+    transition: filter 0.3s ease;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .reveal {
+    filter: none;
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+
+<h1>Rompecabezas del Perrito 🐶</h1>
+<div class="puzzle" id="puzzle">
+  <div class="piece" style="background-position: 0px 0px;"></div>
+  <div class="piece" style="background-position: -150px 0px;"></div>
+  <div class="piece" style="background-position: 0px -150px;"></div>
+  <div class="piece" style="background-position: -150px -150px;"></div>
+  <div class="piece" style="background-position: 0px -300px;"></div>
+  <div class="piece" style="background-position: -150px -300px;"></div>
+</div>
+
+<script>
+  const pieces = document.querySelectorAll(".piece");
+  let chosen = false;
+
+  pieces.forEach(piece => {
+    piece.addEventListener("click", () => {
+      if (!chosen) {
+        piece.classList.add("reveal");
+        chosen = true;
+        pieces.forEach(p => p.style.pointerEvents = "none"); // bloquea los demás clics
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
